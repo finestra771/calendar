@@ -188,7 +188,7 @@ html,body{height:100%;font-family:var(--font-main);background:var(--bg);color:va
 .cal-day.selected{border-color:var(--accent);border-width:2px}
 .cal-day.other-month{background:var(--bg2);opacity:.55}
 .cal-day.today{background:var(--accent-light);border-color:var(--accent-soft)}
-.cal-day.today .day-num{background:var(--today-bg);color:var(--today-text);border-radius:50%;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.cal-day.today .day-num{background:var(--today-bg);color:var(--today-text);border-radius:50%;width:40px;height:30px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px}
 .day-num{font-family:var(--font-num);font-size:12px;color:var(--text);width:22px;height:22px;display:flex;align-items:center;justify-content:center}
 .cal-day.sun .day-num{color:#e05a5a}
 .cal-day.sat .day-num{color:var(--accent)}
