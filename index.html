@@ -77,6 +77,15 @@
             </video>
             <audio id="local-audio" class="local-audio" controls style="display:none"></audio>
             <div class="video-empty" id="video-empty">동영상 / 음악 파일을 추가하면<br>여기서 재생돼요 🎬</div>
+            <!-- 반복재생 버튼 -->
+            <button class="video-loop-btn" id="video-loop-btn" onclick="toggleVideoLoop()" title="반복재생">↻ 반복</button>
+          </div>
+          <div class="video-options-row">
+            <label class="toggle-wrap" style="gap:5px">
+              <input type="checkbox" id="video-loop" class="toggle-input">
+              <span class="toggle-track"><span class="toggle-thumb"></span></span>
+              <span class="toggle-text" style="font-size:11px">🔁 반복</span>
+            </label>
           </div>
           <div class="video-track-list" id="video-track-list"></div>
           <input type="file" id="video-file-in" accept="video/*,audio/*" multiple style="display:none"/>

@@ -22,7 +22,8 @@ let state = {
   curTrack: 0,
   videoTracks: [],  // [{id, name, path}] — 로컬 동영상
   curVideo: 0,
-  mediaSub: 'yt',   // 'yt' | 'video'
+  mediaSub: 'yt',
+  videoLoop: false,
   stickers: [],       // [{id, url, x, y, size}]
   quickLinks: [],     // [{id, name, url, emoji}]
   gallery: [],         // [{id, url}]  — 이미지 데이터는 IndexedDB
@@ -85,6 +86,8 @@ function save() {
       videoTracks: state.videoTracks.map(v=>({id:v.id,name:v.name,displayName:v.displayName||'',filePath:v.filePath||'',isAudio:v.isAudio})),
       curVideo:    state.curVideo,
       mediaSub:    state.mediaSub,
+      videoLoop:   state.videoLoop,
+      videoLoop:   state.videoLoop,
       stickers:    state.stickers,
       quickLinks:  state.quickLinks,
       gallery:     state.gallery.map(g=>({id:g.id,url:g.url})),
@@ -124,6 +127,8 @@ function load() {
   }
     if (d.curVideo != null) state.curVideo = d.curVideo;
     if (d.mediaSub)    state.mediaSub    = d.mediaSub;
+    if (d.videoLoop != null) state.videoLoop = d.videoLoop;
+    if (d.videoLoop != null) state.videoLoop = d.videoLoop;
     if (d.stickers)    state.stickers    = d.stickers;
     if (d.quickLinks)  state.quickLinks  = d.quickLinks;
     if (d.gallery)     state.gallery     = d.gallery;
@@ -435,10 +440,13 @@ function renderDay(dateStr, dayNum, isOther, byDate, tod) {
   if (evs.length>3) evHtml += `<div class="more-chip">+${evs.length-3}개</div>`;
   // 일기 아이콘
   const hasDiary = !isOther && state.diaries[dateStr] && state.diaries[dateStr].trim();
-  const dIcon = hasDiary ? `<span class="diary-icon">${esc(state.diarySettings?.icon||'✏️')}</span>` : '';
+  const diaryIcon = hasDiary ? `<span class="diary-day-icon">${state.diarySettings?.icon||'✏️'}</span>` : '';
+  const numRow = hasDiary
+    ? `<div class="day-num day-num-diary">${dayNum}${diaryIcon}</div>`
+    : `<div class="day-num">${dayNum}</div>`;
 
   return `<div class="${cls}" onclick="selectDate('${dateStr}')">
-    <div class="day-num">${dayNum}${dIcon}</div>
+    ${numRow}
     <div class="day-events">${evHtml}</div>
   </div>`;
 }
@@ -1307,12 +1315,84 @@ function delYT(e,i) {
 }
 
 /* ── 로컬 동영상 플레이어 ── */
+/* ── 동영상 반복/자동재생 ── */
+function toggleVideoLoop() {
+  const chk = document.getElementById('video-loop').checked;
+  const v = document.getElementById('local-video');
+  const a = document.getElementById('local-audio');
+  if (v) v.loop = chk;
+  if (a) a.loop = chk;
+}
+
+function toggleVideoAutoplay() {
+  // 자동재생: 현재 트랙 끝나면 다음 트랙 재생
+  const v = document.getElementById('local-video');
+  const a = document.getElementById('local-audio');
+  const onEnded = () => {
+    const next = (state.curVideo + 1) % state.videoTracks.length;
+    if (next !== state.curVideo) playVideo(next);
+  };
+  [v, a].forEach(el => {
+    if (!el) return;
+    el.removeEventListener('ended', el._autoplayHandler);
+    if (document.getElementById('video-autoplay')?.checked) {
+      el._autoplayHandler = onEnded;
+      el.addEventListener('ended', onEnded);
+    }
+  });
+}
+
+function toggleVideoLoop() {
+  state.videoLoop = !state.videoLoop;
+  const btn   = document.getElementById('video-loop-btn');
+  const video = document.getElementById('local-video');
+  const audio = document.getElementById('local-audio');
+  if (btn) {
+    btn.textContent = state.videoLoop ? '↻ 반복 ON' : '↻ 반복';
+    btn.classList.toggle('active', state.videoLoop);
+  }
+  if (video) video.loop = state.videoLoop;
+  if (audio) audio.loop = state.videoLoop;
+  // 전체 목록 자동재생도 — 현재 트랙 끝나면 다음 트랙
+  if (!state.videoLoop) {
+    if (video) video.onended = () => playNextVideo();
+    if (audio) audio.onended = () => playNextVideo();
+  } else {
+    if (video) video.onended = null;
+    if (audio) audio.onended = null;
+  }
+  save();
+}
+
+function playNextVideo() {
+  if (!state.videoTracks.length) return;
+  const next = (state.curVideo + 1) % state.videoTracks.length;
+  playVideo(next);
+}
+
+function applyVideoLoop() {
+  const video = document.getElementById('local-video');
+  const audio = document.getElementById('local-audio');
+  const btn   = document.getElementById('video-loop-btn');
+  if (video) video.loop = state.videoLoop;
+  if (audio) audio.loop = state.videoLoop;
+  if (btn) {
+    btn.textContent = state.videoLoop ? '↻ 반복 ON' : '↻ 반복';
+    btn.classList.toggle('active', state.videoLoop);
+  }
+}
+
 function renderVideoPlayer() {
+  // 반복 버튼 상태
+  const loopBtn = document.getElementById('video-loop-btn');
+  if (loopBtn) loopBtn.classList.toggle('active', state.videoLoop);
+  const video = document.getElementById('local-video');
+  const audio = document.getElementById('local-audio');
+  if (video) video.loop = state.videoLoop;
+  if (audio) audio.loop = state.videoLoop;
   const tracks = state.videoTracks;
   const list   = document.getElementById('video-track-list');
   const empty  = document.getElementById('video-empty');
-  const video  = document.getElementById('local-video');
-  const audio  = document.getElementById('local-audio');
   if (!list) return;
 
   list.innerHTML = tracks.map((t,i)=>`
@@ -1351,12 +1431,13 @@ function playVideo(i) {
   const video = document.getElementById('local-video');
   const audio = document.getElementById('local-audio');
   if (!cur || !cur._src) return;
+  const loopOn = document.getElementById('video-loop')?.checked || false;
   if (cur.isAudio) {
     if (video) { video.pause(); video.style.display='none'; }
-    if (audio) { audio.style.display='block'; audio.src=cur._src; audio.dataset.trackId=cur.id; audio.play().catch(()=>{}); }
+    if (audio) { audio.style.display='block'; audio.src=cur._src; audio.dataset.trackId=cur.id; audio.loop=loopOn; audio.play().catch(()=>{}); }
   } else {
     if (audio) { audio.pause(); audio.style.display='none'; }
-    if (video) { video.style.display='block'; video.src=cur._src; video.dataset.trackId=cur.id; video.play().catch(()=>{}); }
+    if (video) { video.style.display='block'; video.src=cur._src; video.dataset.trackId=cur.id; video.loop=loopOn; video.play().catch(()=>{}); }
   }
   renderVideoPlayer();
 }
@@ -1395,6 +1476,19 @@ function saveVideoRename() {
     renderVideoPlayer();
   }
   closeModal('video-rename-modal');
+}
+
+
+function toggleVideoLoop() {
+  state.videoLoop = !state.videoLoop;
+  const btn = document.getElementById('video-loop-btn');
+  if (btn) btn.classList.toggle('active', state.videoLoop);
+  // video/audio 요소에 loop 속성 적용
+  const video = document.getElementById('local-video');
+  const audio = document.getElementById('local-audio');
+  if (video) video.loop = state.videoLoop;
+  if (audio) audio.loop = state.videoLoop;
+  save();
 }
 
 function addVideoFiles(files) {
@@ -1624,6 +1718,7 @@ async function init() {
   renderQuickLinks();
   renderYT();
   renderVideoPlayer();
+  applyVideoLoop();
   switchMediaSub(state.mediaSub||'yt');
   renderGallery();
   updateFontSelect();
@@ -1673,6 +1768,17 @@ async function init() {
     if (this.files.length) addVideoFiles(this.files);
     this.value = '';
   });
+
+  // 반복재생 토글
+  const loopChk = document.getElementById('video-loop');
+  if (loopChk) {
+    loopChk.addEventListener('change', function() {
+      const video = document.getElementById('local-video');
+      const audio = document.getElementById('local-audio');
+      if (video) video.loop = this.checked;
+      if (audio) audio.loop = this.checked;
+    });
+  }
   document.getElementById('gl-url-in').addEventListener('keydown', e=>{ if(e.key==='Enter') glAddUrl(); });
 
   // Banner — init drag preview once, wire file input
