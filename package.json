@@ -10,7 +10,7 @@
   },
   "build": {
     "appId": "com.mycalendar.app",
-    "productName": "나만의 캘린더",
+    "productName": "유리 캘린더",
     "directories": {
       "output": "dist"
     },
@@ -25,7 +25,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "나만의 캘린더"
+      "shortcutName": "유리 캘린더"
     },
     "files": [
       "main.js",

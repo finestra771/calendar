@@ -12,7 +12,7 @@ let state = {
   bannerPosX: 'center',
   decoUrl: '',
   diaries: {},
-  diarySettings: { font: "'Nanum Myeongjo',serif", size: '15px', icon: '🖊' },
+  diarySettings: { font: "'Nanum Myeongjo',serif", size: '15px', icon: '✏️' },
   customFonts: [],   // [{name, family, dataUrl}]
   ddays: [],   // [{id, name, date, emoji, showHeader}]  — 여러 D-Day
   _ddayEditId: null,
@@ -435,7 +435,7 @@ function renderDay(dateStr, dayNum, isOther, byDate, tod) {
   if (evs.length>3) evHtml += `<div class="more-chip">+${evs.length-3}개</div>`;
   // 일기 아이콘
   const hasDiary = !isOther && state.diaries[dateStr] && state.diaries[dateStr].trim();
-  const dIcon = hasDiary ? `<span class="diary-icon">${esc(state.diarySettings?.icon||'🖊')}</span>` : '';
+  const dIcon = hasDiary ? `<span class="diary-icon">${esc(state.diarySettings?.icon||'✏️')}</span>` : '';
 
   return `<div class="${cls}" onclick="selectDate('${dateStr}')">
     <div class="day-num">${dayNum}${dIcon}</div>
@@ -625,7 +625,7 @@ function saveDiary() {
   const dicon = document.getElementById('diary-icon');
   if (dfont) state.diarySettings.font = dfont.value;
   if (dsize) state.diarySettings.size = dsize.value;
-  if (dicon) state.diarySettings.icon = dicon.value || '🖊';
+  if (dicon) state.diarySettings.icon = dicon.value || '✏️';
   save();
   renderCalendar(); // 아이콘 반영
   const btn = document.getElementById('diary-save-btn');
@@ -1568,7 +1568,7 @@ function openDiaryListModal() {
     wrap.innerHTML = entries.map(([date, text]) => {
       const d = parseYMD(date);
       const dateStr = `${d.getMonth()+1}월 ${d.getDate()}일 ${['일','월','화','수','목','금','토'][d.getDay()]}`;
-      const icon = state.diarySettings?.icon || '🖊';
+      const icon = state.diarySettings?.icon || '✏️';
       const preview = text.replace(/\n/g,' ').slice(0,50) + (text.length>50?'…':'');
       return `<div class="diary-list-item" onclick="goDiaryDate('${date}')">
         <div class="diary-list-date"><span>${icon}</span>${dateStr}</div>

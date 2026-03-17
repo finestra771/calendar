@@ -14,7 +14,7 @@ protocol.registerSchemesAsPrivileged([{
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400, height: 860, minWidth: 900, minHeight: 600,
-    title: '나만의 캘린더',
+    title: '유리 캘린더',
     icon: path.join(__dirname, 'icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -95,7 +95,7 @@ function createMenu() {
       { type: 'separator' },
       { label: '개발자 도구', accelerator: 'F12', click: () => mainWindow.webContents.toggleDevTools() },
     ]},
-    { label: '도움말', submenu: [{ label: '나만의 캘린더 v1.0', enabled: false }] },
+    { label: '도움말', submenu: [{ label: '유리 캘린더 v1.0', enabled: false }] },
   ]));
 }
 
@@ -104,7 +104,7 @@ function createTray() {
     const icon = nativeImage.createFromPath(path.join(__dirname, 'icon.ico'));
     tray = new Tray(icon.isEmpty() ? nativeImage.createEmpty() : icon);
   } catch { tray = new Tray(nativeImage.createEmpty()); }
-  tray.setToolTip('나만의 캘린더');
+  tray.setToolTip('유리 캘린더');
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: '열기', click: () => { mainWindow.show(); mainWindow.focus(); } },
     { type: 'separator' },
