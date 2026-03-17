@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>✦ 나만의 캘린더</title>
+<link href="https://fonts.googleapis.com/css2?family=Jua&family=Nanum+Myeongjo:wght@400;700&family=Gothic+A1:wght@300;400;500;700&family=Do+Hyeon&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-theme="lavender">
+
+<!-- THEME PICKER -->
+<div id="theme-picker">
+  <button class="theme-btn" data-theme="lavender" title="라벤더">💜</button>
+  <button class="theme-btn" data-theme="sakura"   title="사쿠라">🌸</button>
+  <button class="theme-btn" data-theme="mint"     title="민트">🩵</button>
+  <button class="theme-btn" data-theme="cream"    title="크림">🍮</button>
+  <button class="theme-btn" data-theme="night"    title="나이트">🌙</button>
+  <button class="theme-btn" data-theme="custom"   title="커스텀 테마 편집" id="custom-theme-btn">🎨</button>
+</div>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="header-left">
+    <button class="menu-btn" id="yt-toggle-btn" title="유튜브 패널 열기/닫기">♪</button>
+  </div>
+  <div class="header-center">
+    <button class="nav-btn" id="prev-btn">←</button>
+    <span class="header-month" id="header-month">2025년 9월</span>
+    <button class="nav-btn" id="next-btn">→</button>
+    <button class="today-btn" id="today-btn">오늘</button>
+  </div>
+  <div class="header-right">
+    <span class="view-label" id="dday-label">D+0</span>
+  </div>
+</header>
+
+<!-- APP BODY -->
+<div class="app-body">
+
+  <!-- Left Panel: YouTube + Gallery -->
+  <div class="yt-panel collapsed" id="yt-panel">
+    <div class="yt-panel-inner">
+
+      <!-- 탭 토글 -->
+      <div class="lp-tabs">
+        <button class="lp-tab active" id="lp-tab-yt"      onclick="switchLPTab('yt')">♪ 미디어</button>
+        <button class="lp-tab"        id="lp-tab-gallery" onclick="switchLPTab('gallery')">◈ 갤러리</button>
+      </div>
+
+      <!-- ── 미디어 탭 ── -->
+      <div id="lp-yt">
+
+        <!-- 서브탭: 유튜브 / 동영상 -->
+        <div class="media-subtabs">
+          <button class="media-subtab active" id="msub-yt"    onclick="switchMediaSub('yt')">▶ 유튜브</button>
+          <button class="media-subtab"        id="msub-video" onclick="switchMediaSub('video')">🎬 동영상</button>
+        </div>
+
+        <!-- 유튜브 링크 목록 -->
+        <div id="msub-panel-yt">
+          <div class="yt-track-list" id="yt-track-list"></div>
+          <div class="yt-add-area">
+            <input class="yt-input" id="yt-title-in" placeholder="제목 (선택)" />
+            <div class="yt-add-row">
+              <input class="yt-input" id="yt-url-in" placeholder="YouTube URL" />
+              <button class="yt-add-btn" id="yt-add-btn">+</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 로컬 동영상 플레이어 -->
+        <div id="msub-panel-video" style="display:none">
+          <div class="video-player-wrap" id="video-player-wrap">
+            <video id="local-video" class="local-video" controls style="display:none">
+              <source id="local-video-src" src="" />
+            </video>
+            <audio id="local-audio" class="local-audio" controls style="display:none"></audio>
+            <div class="video-empty" id="video-empty">동영상 / 음악 파일을 추가하면<br>여기서 재생돼요 🎬</div>
+          </div>
+          <div class="video-track-list" id="video-track-list"></div>
+          <input type="file" id="video-file-in" accept="video/*,audio/*" multiple style="display:none"/>
+          <button class="gl-file-label" style="margin-top:6px;border:none;cursor:pointer;width:100%" onclick="addMediaViaDialog()">
+            📁 동영상 / 음악 파일 추가
+          </button>
+        </div>
+
+      </div>
+
+      <!-- ── 갤러리 탭 ── -->
+      <div id="lp-gallery" style="display:none">
+        <!-- 슬라이드 뷰어 -->
+        <div class="gl-viewer" id="gl-viewer">
+          <div class="gl-slide-area" id="gl-slide-area">
+            <div class="gl-empty" id="gl-empty">이미지를 추가하면<br>슬라이드쇼가 재생돼요 ◈</div>
+            <img class="gl-img" id="gl-img" src="" alt="" style="display:none" />
+          </div>
+          <div class="gl-controls" id="gl-controls" style="display:none">
+            <button class="gl-btn" onclick="glPrev()">‹</button>
+            <span class="gl-counter" id="gl-counter">1 / 1</span>
+            <button class="gl-btn" onclick="glNext()">›</button>
+            <button class="gl-btn gl-play-btn" id="gl-play-btn" onclick="glTogglePlay()" title="자동재생">▶</button>
+          </div>
+        </div>
+        <!-- 썸네일 스트립 -->
+        <div class="gl-thumbs" id="gl-thumbs"></div>
+        <!-- 추가 버튼 -->
+        <div class="gl-add-area">
+          <div class="gl-add-row">
+            <input class="yt-input" id="gl-url-in" placeholder="이미지 URL" style="flex:1"/>
+            <button class="yt-add-btn" onclick="glAddUrl()" title="URL로 추가">+</button>
+          </div>
+          <label class="gl-file-label">
+            📁 파일 추가
+            <input type="file" id="gl-file-in" accept="image/*" multiple style="display:none"/>
+          </label>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Calendar Main -->
+  <div class="cal-main">
+    <!-- Banner -->
+    <div class="banner-area" id="banner-area">
+      <div class="banner-bg" id="banner-bg"></div>
+      <div class="banner-placeholder" id="banner-placeholder">
+        <span class="banner-icon">🖼</span>
+        <span class="banner-text">배너 이미지를 설정해보세요</span>
+        <button class="banner-edit-btn" onclick="openBannerModal()">이미지 설정</button>
+      </div>
+      <!-- Banner controls -->
+      <div class="banner-controls" id="banner-controls" style="display:none">
+        <button class="banner-ctrl-btn" onclick="openBannerModal()">🖼 변경</button>
+        <button class="banner-ctrl-btn" onclick="openModal('sticker-modal')">🎀 스티커</button>
+      </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="cal-container">
+      <div class="cal-weekdays" id="cal-weekdays"></div>
+      <div class="cal-grid" id="cal-grid"></div>
+    </div>
+  </div>
+
+  <!-- Right Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <div class="dday-strip">
+        <div class="dday-list" id="dday-list"></div>
+        <button class="icon-btn" id="dday-add-btn" title="D-Day 추가">＋</button>
+      </div>
+
+      <div class="selected-date-info">
+        <div class="sel-date-text" id="sel-date-text">날짜를 선택하세요</div>
+        <div class="sel-tabs">
+          <button class="sel-tab active" data-stab="events">이벤트</button>
+          <button class="sel-tab" data-stab="diary">일기</button>
+        </div>
+      </div>
+
+      <div class="sidebar-panel" id="panel-events">
+        <!-- 중요 이벤트 공지 배너 -->
+        <div id="important-banner" style="display:none"></div>
+        <button class="add-event-btn" id="add-event-btn">+ 이벤트 추가</button>
+        <div class="event-list" id="sidebar-event-list"></div>
+      </div>
+
+      <div class="sidebar-panel" id="panel-diary" style="display:none">
+        <!-- 일기 툴바 -->
+        <div class="diary-toolbar">
+          <!-- 폰트 선택 + 임베드 -->
+          <div class="diary-tool-group">
+            <select class="diary-tool-select" id="diary-font" title="폰트">
+              <option value="'Nanum Myeongjo',serif">나눔명조</option>
+              <option value="'Gothic A1',sans-serif">고딕</option>
+              <option value="'Jua',sans-serif">주아</option>
+              <option value="'Do Hyeon',sans-serif">도현</option>
+              <option value="monospace">모노</option>
+              <option value="__custom__">+ 폰트 추가</option>
+            </select>
+            <label class="diary-font-upload-btn" title="TTF/OTF 폰트 파일 업로드">
+              ↑
+              <input type="file" id="diary-font-file" accept=".ttf,.otf,.woff,.woff2" style="display:none"/>
+            </label>
+          </div>
+          <!-- 크기 -->
+          <select class="diary-tool-select diary-tool-size" id="diary-size" title="크기">
+            <option value="11px">11</option>
+            <option value="13px">13</option>
+            <option value="15px" selected>15</option>
+            <option value="17px">17</option>
+            <option value="19px">19</option>
+            <option value="22px">22</option>
+            <option value="26px">26</option>
+            <option value="30px">30</option>
+            <option value="36px">36</option>
+          </select>
+          <!-- 아이콘 -->
+          <input class="diary-tool-emoji" id="diary-icon" type="text" maxlength="4" placeholder="🖊" title="일기 아이콘 (캘린더에 표시)" />
+        </div>
+        <textarea class="diary-textarea" id="diary-textarea" placeholder="오늘의 기록을 남겨보세요 ✦"></textarea>
+        <div class="diary-btn-row">
+          <button class="diary-save-btn" id="diary-save-btn">저장</button>
+          <button class="diary-list-btn" id="diary-list-btn">📋 목록</button>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="sidebar-panel quicklinks-panel">
+        <div class="quicklinks-header">
+          <span class="quicklinks-title">⬈ 빠른 링크</span>
+          <button class="icon-btn" onclick="openModal('quicklink-modal')" title="링크 추가">＋</button>
+        </div>
+        <div class="quicklinks-list" id="quicklinks-list">
+          <div class="ql-empty">링크를 추가해보세요</div>
+        </div>
+      </div>
+
+      <!-- Sidebar Deco -->
+      <div class="sidebar-deco" id="sidebar-deco">
+        <div class="deco-placeholder">
+          <div class="deco-text">사이드바 꾸미기</div>
+          <button class="deco-add-btn" onclick="openModal('deco-modal')">이미지 추가</button>
+        </div>
+      </div>
+
+    </div>
+  </aside>
+</div>
+
+<!-- MODAL: Event -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-header">
+      <input class="modal-title-input" id="ev-title" placeholder="일정 제목" />
+      <button class="modal-close-btn" onclick="closeModal('modal-overlay')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-col">
+          <label class="form-label">📅 날짜</label>
+          <input class="form-input" type="date" id="ev-date" />
+        </div>
+        <div class="form-col">
+          <label class="form-label">⏰ 시간</label>
+          <input class="form-input" type="time" id="ev-time" />
+        </div>
+      </div>
+      <div class="form-row"><div class="form-col full">
+        <div class="important-toggle-row">
+          <label class="toggle-wrap">
+            <input type="checkbox" id="ev-important" class="toggle-input">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            <span class="toggle-text important-toggle-label">⭐ 중요 이벤트로 지정</span>
+          </label>
+        </div>
+      </div></div>
+      <div class="form-row"><div class="form-col full">
+        <label class="form-label">🎨 색상</label>
+        <div class="color-picker" id="ev-color-picker"></div>
+      </div></div>
+      <div class="form-row"><div class="form-col full">
+        <label class="form-label">📝 메모</label>
+        <textarea class="form-textarea" id="ev-memo" placeholder="세부 내용 (예: XX캐릭터 180mm 5개 AA도안)"></textarea>
+      </div></div>
+      <div class="form-row"><div class="form-col full">
+        <label class="form-label">🔗 링크 바로가기 <span id="link-count-label" style="font-weight:400;opacity:.6">(0/5)</span></label>
+        <div class="links-display" id="ev-links-display"></div>
+        <div class="link-add-row" id="link-add-row">
+          <input class="form-input" id="link-name-in" placeholder="이름" style="max-width:90px" />
+          <input class="form-input" id="link-url-in" placeholder="https://..." style="flex:1" />
+          <button class="link-add-btn" id="link-add-btn">+</button>
+        </div>
+      </div></div>
+      <div class="form-row"><div class="form-col full">
+        <label class="form-label">🔄 일정 넘기기</label>
+        <div class="rollover-box">
+          <label class="toggle-wrap">
+            <input type="checkbox" id="ev-rollover" class="toggle-input">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            <span class="toggle-text">완료 못 하면 자동으로 넘기기</span>
+          </label>
+          <input class="form-input" type="date" id="ev-rollover-date" style="display:none;margin-top:8px" />
+        </div>
+      </div></div>
+      <div class="form-row"><div class="form-col full">
+        <label class="form-label">🔁 반복</label>
+        <select class="form-input" id="ev-repeat">
+          <option value="">반복 없음</option>
+          <option value="daily">매일</option>
+          <option value="weekly">매주</option>
+          <option value="monthly">매월</option>
+        </select>
+        <div class="repeat-range" id="repeat-range" style="display:none;margin-top:8px">
+          <input class="form-input" type="date" id="ev-repeat-start" />
+          <span class="range-sep">~</span>
+          <input class="form-input" type="date" id="ev-repeat-end" />
+        </div>
+      </div></div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-del-btn" id="modal-del-btn" style="display:none" onclick="deleteEvent()">삭제</button>
+      <button class="modal-cancel-btn" onclick="closeModal('modal-overlay')">취소</button>
+      <button class="modal-save-btn" id="modal-save-btn">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Banner -->
+<div class="modal-overlay" id="banner-modal">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-header">
+      <span class="modal-label-title">🖼 배너 설정</span>
+      <button class="modal-close-btn" onclick="closeModal('banner-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <!-- Image source -->
+      <div class="banner-src-row">
+        <div class="form-col" style="flex:1">
+          <label class="form-label">이미지 URL</label>
+          <input class="form-input" id="banner-url-in" placeholder="https://..." />
+        </div>
+        <div class="banner-src-sep">또는</div>
+        <div class="form-col" style="flex:0 0 auto">
+          <label class="form-label">파일 업로드</label>
+          <label class="banner-file-label" id="banner-file-label">
+            📁 파일 선택
+            <input type="file" id="banner-file-in" accept="image/*" style="display:none" />
+          </label>
+        </div>
+      </div>
+      <!-- Live preview with drag -->
+      <div class="banner-preview-wrap">
+        <div class="banner-preview" id="banner-preview">
+          <div class="banner-preview-empty" id="banner-preview-empty">이미지를 선택하면 미리보기가 표시됩니다</div>
+          <div class="banner-preview-crosshair" id="banner-preview-crosshair" style="display:none"></div>
+        </div>
+        <div class="banner-preview-hint">🖱 이미지를 드래그해서 위치를 조정하세요</div>
+      </div>
+      <!-- Zoom slider -->
+      <div class="banner-zoom-row" id="banner-zoom-row" style="display:none">
+        <label class="form-label" style="white-space:nowrap">🔍 확대</label>
+        <input type="range" id="banner-zoom" min="100" max="300" value="100" step="5" style="flex:1" />
+        <span id="banner-zoom-val" style="font-size:12px;color:var(--text2);min-width:38px">100%</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cancel-btn" onclick="closeModal('banner-modal')">취소</button>
+      <button class="modal-save-btn" onclick="saveBanner()">적용</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Sticker -->
+<div class="modal-overlay" id="sticker-modal">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-header">
+      <span class="modal-label-title">🎀 스티커 추가</span>
+      <button class="modal-close-btn" onclick="closeModal('sticker-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="form-label">이미지 URL</label>
+      <input class="form-input" id="sticker-url-in" placeholder="https://... (PNG 권장)" style="margin-bottom:10px"/>
+      <label class="form-label">또는 파일 업로드</label>
+      <input type="file" id="sticker-file-in" accept="image/*" class="form-input" style="margin-bottom:12px"/>
+      <label class="form-label">크기</label>
+      <div style="display:flex;align-items:center;gap:10px">
+        <input type="range" id="sticker-size-in" min="40" max="300" value="100" style="flex:1"/>
+        <span id="sticker-size-val" style="font-size:12px;color:var(--text2);min-width:40px">100px</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cancel-btn" onclick="closeModal('sticker-modal')">취소</button>
+      <button class="modal-save-btn" onclick="addSticker()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Quick Link -->
+<div class="modal-overlay" id="quicklink-modal">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-header">
+      <span class="modal-label-title">⬈ 빠른 링크 추가</span>
+      <button class="modal-close-btn" onclick="closeModal('quicklink-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="form-label">이름</label>
+      <input class="form-input" id="ql-name-in" placeholder="예) 인쇄소" style="margin-bottom:8px"/>
+      <label class="form-label">URL</label>
+      <input class="form-input" id="ql-url-in" placeholder="https://..." style="margin-bottom:8px"/>
+      <label class="form-label">아이콘 이모지 (선택)</label>
+      <input class="form-input" id="ql-emoji-in" placeholder="예) 🖨 📁 📎"/>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cancel-btn" onclick="closeModal('quicklink-modal')">취소</button>
+      <button class="modal-save-btn" onclick="addQuickLink()">추가</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: D-Day -->
+<div class="modal-overlay" id="dday-modal">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-header">
+      <span class="modal-label-title" id="dday-modal-title">D-Day 추가</span>
+      <button class="modal-close-btn" onclick="closeModal('dday-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="form-label">이름</label>
+      <input class="form-input" id="dday-name-in" placeholder="예) 만 별을 땡세로" style="margin-bottom:8px"/>
+      <label class="form-label">날짜</label>
+      <input class="form-input" type="date" id="dday-date-in" style="margin-bottom:8px"/>
+      <label class="form-label">이모지 (선택)</label>
+      <input class="form-input" id="dday-emoji-in" placeholder="예) 🎂 💜 ✦" style="margin-bottom:8px"/>
+      <label class="form-label">헤더에 표시</label>
+      <label class="toggle-wrap" style="margin-top:4px">
+        <input type="checkbox" id="dday-show-header" class="toggle-input" checked>
+        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+        <span class="toggle-text">헤더 D-Day 라벨에 표시</span>
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-del-btn" id="dday-del-btn" style="display:none" onclick="deleteDDay()">삭제</button>
+      <button class="modal-cancel-btn" onclick="closeModal('dday-modal')">취소</button>
+      <button class="modal-save-btn" onclick="saveDDay()">저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Deco -->
+<div class="modal-overlay" id="deco-modal">
+  <div class="modal-box" style="max-width:360px">
+    <div class="modal-header">
+      <span class="modal-label-title">사이드바 이미지</span>
+      <button class="modal-close-btn" onclick="closeModal('deco-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <label class="form-label">이미지 URL</label>
+      <input class="form-input" id="deco-url-in" placeholder="https://..." style="margin-bottom:8px"/>
+      <label class="form-label">또는 파일 업로드</label>
+      <input type="file" id="deco-file-in" accept="image/*" class="form-input"/>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cancel-btn" onclick="closeModal('deco-modal')">취소</button>
+      <button class="modal-save-btn" onclick="saveDeco()">적용</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Diary List -->
+<div class="modal-overlay" id="diary-list-modal">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-header">
+      <span class="modal-label-title">📋 일기 목록</span>
+      <button class="modal-close-btn" onclick="closeModal('diary-list-modal')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div class="diary-list-wrap" id="diary-list-wrap"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Custom Theme -->
+<div class="modal-overlay" id="custom-theme-modal">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-header">
+      <span class="modal-label-title">🎨 테마 커스터마이징</span>
+      <button class="modal-close-btn" onclick="closeModal('custom-theme-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="theme-custom-grid" id="theme-custom-grid"></div>
+      <div class="theme-preview" id="theme-preview"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cancel-btn" onclick="closeModal('custom-theme-modal')">취소</button>
+      <button class="modal-save-btn" onclick="saveCustomTheme()">적용</button>
+    </div>
+  </div>
+</div>
+
+<!-- Global Sticker Layer -->
+<div class="sticker-layer" id="sticker-layer"></div>
+
+<!-- Sticker Toolbar: z-index above layer, always clickable -->
+<div class="sticker-toolbar" id="sticker-toolbar">
+  <button class="sticker-tb-btn" onclick="openModal('sticker-modal')">🎀 스티커 추가</button>
+  <button class="sticker-tb-btn sticker-tb-edit" id="sticker-edit-btn" onclick="toggleStickerEditMode()">✏ 편집모드</button>
+</div>
+
+<!-- MODAL: Video Rename -->
+<div class="modal-overlay" id="video-rename-modal">
+  <div class="modal-box" style="max-width:340px">
+    <div class="modal-header">
+      <span class="modal-label-title">제목 편집</span>
+      <button class="modal-close-btn" onclick="closeModal('video-rename-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input class="form-input" id="video-rename-in" placeholder="제목을 입력하세요" />
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cancel-btn" onclick="closeModal('video-rename-modal')">취소</button>
+      <button class="modal-save-btn" onclick="saveVideoRename()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
